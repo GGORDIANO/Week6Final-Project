@@ -1,52 +1,57 @@
 class Card {
-    constructor(rank, suit) {
-      this.rank = rank;
+    constructor(suit, name, value) {
+      this.name = name;
       this.suit = suit;
+      this.value = value;
     }
   }
   
   class Deck {
     constructor() {
       this.cards = [];          //cards an array to store the cards in the deck
-      this.createDeck();    // creates a new deck of 52 cards
+     this.suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+     this.names= ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
+     this.values = [14, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
     }
   
     createDeck() {
-      const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];     //rank of card(2-10,J,Q,K,A)
-      const suits = ['hearts', 'diamonds', 'clubs', 'spades'];    //The suits of the card (diamonds', 'clubs', 'spades)
-  
-      for (const suit of suits) {
-        for (const rank of ranks) {
-          this.cards.push(new Card(rank, suit));
+      console.log("Creating new Deck");
+      for (let i = 0; i < this.suits.length; i++) {
+        for (let n = 0; n< this.names.length; n++) {
+          this.cards.push(new Card(this.suits[i], this.names[n]))
         }
       }
-    }
+    };
   
-    shuffle() {                 //shuffles the card in the deck randomly
-      let currentIndex = this.cards.length;
-      let randomIndex;
-  
-      while (currentIndex !== 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-  
-        [this.cards[currentIndex], this.cards[randomIndex]] = [
-          this.cards[randomIndex],
-          this.cards[currentIndex]
-        ];
+    shuffleDeck() {                 //shuffles the card in the deck randomly
+      console.log("Shuffling Deck");
+      const shuffledDeck = [];
+      for (let i = 0; i < 52; i++) {
+        let randomPosition = Math.floor((this.cards.length - i) * Math.random());
+        let randomItem = this.cards.splice(randomPosition, 1);
+        shuffledDeck.push(...randomItem);
       }
+      return shuffledDeck;
     }
+
+      
   
-    dealCard() {                  //removes and returns the top card from the deck
-      return this.cards.pop();
+    dealDeck(players, shuffledCards) {
+      console.log("Dealing Cards");
+      let dealingCards1 = shuffledCards.splice(0,26);
+      players[0].hands.push(...dealingCards1);
+      let dealingCards2 = shuffledCards.splice(0, 26);
+      players[1].hands.push(...dealingCards2);
+    
     }
   }
-  
+
   class Player {
     constructor(name) {     //the name of the player
       this.name = name;
       this.hand = [];       //an array to store the player's cards
-      this.score = 0;       //the score of the player 
+      this.point= 0;       //the score of the player 
     }
   
     playCard() {         //removes and returns the top card from the player's hand
@@ -60,79 +65,76 @@ class Card {
       this.deck = new Deck();   //an instance of the deck class
     }
   
-    initializeGame() {          //methods- initializeGame(); creates the players and the deck, shuffles the deck, and deals cards to each player
+  start() {          //methods- initializeGame(); creates the players and the deck, shuffles the deck, and deals cards to each player
       this.players.push(new Player('Player 1'));
       this.players.push(new Player('Player 2'));
-      this.deck.shuffle();
+      console.log("Declare War!", this.players);
+
+      let myDeck = new Deck();
+      myDeck.createDeck();
+      let shuffledDeck = myDeck.shuffledDeck();
+
+      myDeck.dealDeck(this.players, shuffledDeck);
+      //console.log(this.players);
+
+      this.playGame();
+
+      this.endGame();
+    }
   
-      while (this.deck.cards.length > 0) {
-        for (const player of this.players) {
-          const card = this.deck.dealCard();
-          player.hand.push(card);
+     
+  
+    playRound() {        
+      console.log("Declare War");
+      let player1 = this.players[0];
+      let player2 = this.players[1];
+      let roundWinner = "";
+      let turn = 0;
+      //this loop will run till one player runs out of cards, each iteration will pop the last card from each players array of cards and compare the values of the card and determine 
+      while (player1.hands.length !== 0 && player2.hands.length !== 0) {
+        let player1Card = player1.hands.pop();
+        let player2Card = player2.hands.pop();
+        if (player1Card.value > playerCard2.value) {
+          roundWinner = player1.name;
+          player1.points += 1;
+          console.log("Turn: ", (turn += 1), "\nPlayer 1 card: ", player1Card.name, " of ", player1Card.suit, "\nPlayer 2 card: ", player2Card.name, " of ", player2Card.suit, " \n")
+      
         }
+        else if (player2Card.value > player1Card.value) {
+          roundWinner = player2.name;
+          player2.points += 1;
+          console.log("Turn: ", (turn += 1), "\nPlayer 1 card: ", player1Card.name, " of ", player1Card.suit, "\nPlayer 2 card: ", player2Card.name, " of ", player2Card.suit, " \n")
+
+
+        }
+        else{
+          console.log("Turn: ", (turn += 1), "\nPlayer 1 card: ", player1Card.name, " of ", player1Card.suit, "\nPlayer 2 card: ", player2Card.name, " of ", player2Card.suit, " \n")
+        }
+
+
       }
     }
-  
-    playRound() {         //-each player plays a card, and the player with the higher card is awarded points
-      const card1 = this.players[0].playCard();
-      const card2 = this.players[1].playCard();
-  
-      if (card1.rank > card2.rank) {
-        this.players[0].score++;
-      } else if (card1.rank < card2.rank) {
-        this.players[1].score++;
-      }
-    }
-  
-    getWinner() {  //determines the winner based on the players' scores 
-      const player1Score = this.players[0].score;
-      const player2Score = this.players[1].score;
-  
-      if (player1Score > player2Score) {
-        return this.players[0].name;
-      } else if (player1Score < player2Score) {
-        return this.players[1].name;
+  endGame() {            // this winner will diplay when game is over and display winner 
+    let gameWinner = " ";
+    let player1 = this.player[0];
+    let player2 = this.player[1];
+    let winnerPoints = 0;
+
+    if ( player1.points > player2.points) {
+      gameWinner = player1.name;
+      winnerPoints = player1.points
+      alert("Game Over!" + gameWinner + "Won the game!\nFinal Scores:\n" + ": " + player1.points + "\n" + player2.name + ": " + player2.points + "\nThanks for playing");
+      } else if (player2.points > player1.points) {
+        gameWinner = player2.name;
+        winnerPoints = player2.points;
+        alert("Game Over!" + gameWinner + "Won the game!\nFinal Scores:\n" + ": " + player1.points + "\n" + player2.name + ": " + player2.points + "\nThanks for playing");
       } else {
-        return 'It\'s a tie!';
+        alert("Game Over! \nTIED GAME\nFinal SCORE:\n" + player1.name + ": " + player1.points + "\n" + player2.name + ": " + player2.points + "\nThanks for playing");
+
       }
     }
-  
-    playGame() {    //executes the game by repeatedly playing rounds until all cards have been played
-      this.initializeGame();
-      while (this.players[0].hand.length > 0) {
-        this.playRound();
-      }
-    }
-  
-    displayScore() {    //displays the final scores and declares the winer 
-      console.log(`Player 1: ${this.players[0].score} points`);
-      console.log(`Player 2: ${this.players[1].score} points`);
-      console.log(`Winner: ${this.getWinner()}`);
-    }
+
   }
-  
-  // Unit Test using Mocha and Chai; *a unit test using mocha and chai for at least one of the functions in the game class- "playRound()" or "getWinner()"
-  const assert = require('chai').assert;
-  
-  describe('Game', function() {
-    describe('playRound()', function() {
-      it('should increment the score of the player with the higher card', function() {
-        const game = new Game();
-        const player1 = game.players[0];
-        const player2 = game.players[1];
-        player1.hand.push(new Card('A', 'hearts'));
-        player2.hand.push(new Card('K', 'spades'));
-  
-        game.playRound();
-  
-        assert.equal(player1.score, 1);
-        assert.equal(player2.score, 0);
-      });
-    });
-  });
-  
-  // Usage
-  const game = new Game();
-  game.playGame();
-  game.displayScore();
-  
+
+  let game = new Game ();
+  game.start
